@@ -1,12 +1,12 @@
 
 import './App.css'
 import {Box} from '@mui/material'
-import Form from './components/form'
+import Survey from './components/Survey'
 function App() {
 
   return (
     <Box>
-      <Form/>
+      <Survey/>
     </Box>
   )
 }
