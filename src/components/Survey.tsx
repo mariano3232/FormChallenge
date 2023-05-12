@@ -1,68 +1,112 @@
 import db from '../db.json'
 import {Box,TextField,Typography,Select,MenuItem,Checkbox,Button} from '@mui/material'
 import { Formik } from 'formik';
-
-
+import  {sendFormData}  from '../firebase';
+import { useNavigate } from "react-router-dom";
+import {useState} from 'react'
 
 export default function Survey() {
-  const formFields=db
+    const formFields=db
 
-  const initialValues: { [key: string]: any } = {};
+    const navigate=useNavigate()
 
-    formFields.items?.forEach((item) => {
-    if (item.name) {
-        if (item.type === "checkbox") {
-        initialValues[item.name] = [];
-        } else {
-        initialValues[item.name] = "";
-        }
-    }
-    });
+    const initialValues: { [key: string]: any } = {};
 
-    console.log('initialValues :',initialValues)
-
-  const validate= (values:{[key: string]: any;})=>{
-    const errors:{
-        [key:string]:string;
-    }={}
-    formFields.items.forEach(item=>{
-        if (item.required && values[item.name]===''){
-            errors[item.name]='Este campo es obligatorio'
-        };
-        if (item.type==='email' && item.name && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values[item.name])){
-            errors[item.name]='Email inválido'
-        }
-        if (item.type==='select' && item.name &&!item.options?.map(e=>{return e.value}).includes(values[item.name])){
-            errors[item.name]='Opción no válida'
-        }
-        if (item.type==='checkbox' && item.required && values[item.name][0]!=='on'){
-            errors[item.name]='Aceptar para continuar'
-            console.log('aaa:',values[item.name][0])
+    formFields.items.forEach((item)=>{
+        if (item.type!=='submit'){
+        switch(item.type){
+            case 'checkbox':
+                initialValues[item.name as string] = {value:false};
+            break;
+            case 'select':
+                initialValues[item.name as string] = {value:'label'};
+            break;
+            default:
+                initialValues[item.name as string] = {};
+            }
         }
     })
-    console.log(values)
-    return errors;
-  }
 
+    const initialErrors: { [key: string]: string } = {};
 
-  return (
+    formFields.items.forEach((item) => {
+        initialErrors[item.name as string]='';
+    })
+
+    const [formData,setFormData]=useState(initialValues)
+
+    const [errors , setErrors]=useState(initialErrors)
+
+    const validate = (values: { [key: string]: any })=>{
+
+        const errors: { [key: string]: string } = {};
+
+        formFields.items.forEach(item=>{
+            if (item.required && values[item.name].value===''){
+                errors[item.name]='Este campo es obligatorio'
+            };
+            if (item.type==='email' &&  !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values[item.name as string].value)){
+                errors[item.name as string]='Email inválido'
+            }
+            if (item.type==='select' && item.name &&!item.options?.map(e=>{return e.value}).includes(values[item.name].value)){
+                errors[item.name]='Opción no válida'
+            }
+            if (item.type==='checkbox' && item.required && values[item.name].value!==true){
+                errors[item.name]='Aceptar para continuar'
+            }
+        })
+        return errors;
+    }
+
+    const handleChange = (fieldName: string, field: any) => {
+        const updatedFormData = {
+          ...formData,
+          [fieldName]: {
+            ...formData[fieldName],
+            value: field.value,
+            index: field.index,
+            label: field.label,
+          },
+        };
+        setFormData(updatedFormData);
+        setErrors(validate(updatedFormData));
+        // console.log('formData:', formData);
+    };
+
+    const areThereErrors = (errors: { [key: string]: string }) => {
+        let res=false;
+        Object.keys(errors).forEach((name=>{
+            if (errors[name]!==""){
+                res=true
+            }
+        }))
+        return res;
+    }
+
+    return (
     <Box>
-        <Formik
-            validate={validate}
+        <Formik           
             initialValues={initialValues}
-            onSubmit={(values,{setSubmitting})=>{
-                console.log('values :',values)
-                setSubmitting(false)
+
+            onSubmit={ async ()=>{
+                if (areThereErrors(errors)===false){
+                    try {
+                        const result = await sendFormData(formData);
+                        console.log(result);
+                        navigate('/answers')
+                    } catch (error) {
+                        console.log('Error:', error);
+                    }
+                } else {
+                    alert('Hay errores en el formulario, revisar e intentar nuevamente')
+                }
             }}
         >
-        {({ errors,
-        values,
+        {({
         touched,
         handleBlur,
-        handleChange,
         handleSubmit,
-        isSubmitting,
-        
+        isSubmitting,      
         }) => (
         <form onSubmit={handleSubmit}>
         <Box sx={{
@@ -71,7 +115,7 @@ export default function Survey() {
             gap:'30px',
         }}>
         {
-            formFields?.items.map(field=>{
+            formFields?.items.map((field,index)=>{
                 switch(field.type){
                     case 'text':{
                         return(
@@ -81,8 +125,11 @@ export default function Survey() {
                                 label={field.label}
                                 variant="filled"
                                 onBlur={handleBlur}
-                                value={field.name?values[field.name]:''}
-                                onChange={handleChange}
+                                onChange={e=>handleChange(e.target.name,{
+                                    index,
+                                    label:field.label,
+                                    value:e.target.value,
+                                })}
                                 helperText={touched[field.name as string] as boolean && errors[field.name as string] as string}
                                 error={Boolean(field.name&&touched[field.name] && errors[field.name])}
                             />
@@ -96,11 +143,13 @@ export default function Survey() {
                                 label={field.label}
                                 variant="filled"
                                 onBlur={handleBlur}
-                                value={field.name?values[field.name]:''}
-                                onChange={handleChange}
+                                onChange={e=>handleChange(e.target.name,{
+                                    index,
+                                    label:field.label,
+                                    value:e.target.value,
+                                })}
                                 helperText={touched[field.name as string] as boolean && errors[field.name as string] as string}
                                 error={Boolean(field.name&&touched[field.name] && errors[field.name])}
-
                             />
                         )
                     }
@@ -113,8 +162,11 @@ export default function Survey() {
                                     name={field.name}
                                     variant="filled"
                                     onBlur={handleBlur}
-                                    value={field.name?values[field.name]:''}
-                                    onChange={handleChange}
+                                    onChange={e=>handleChange(e.target.name,{
+                                        index,
+                                        label:field.label,
+                                        value:e.target.value,
+                                    })}
                                     helperText={touched[field.name as string] as boolean && errors[field.name as string] as string}
                                     error={Boolean(field.name&&touched[field.name] && errors[field.name])}
                                 />
@@ -128,8 +180,12 @@ export default function Survey() {
                             name={field.name}
                             label={field.label}
                             variant="filled"
-                            value={field.name && values[field.name] ? values[field.name] : "label"}
-                            onChange={handleChange}
+                            value={formData[field.name as string].value}
+                            onChange={e=>handleChange(e.target.name,{
+                                index,
+                                label:field.label,
+                                value:e.target.value,
+                            })}
                             onBlur={handleBlur}
                             error={Boolean(field.name&&touched[field.name] && errors[field.name])}
                             >
@@ -144,22 +200,28 @@ export default function Survey() {
                             </Select>
                         )
                     }
-                    case 'checkbox':{
-                        return(
-                            <Box sx={{display:'flex'}} key={field.name}>
-                                <Typography>
-                                    {field.label}
-                                </Typography>
-                                <Checkbox
-                                    id={field.name}
-                                    onChange={handleChange}
-                                />
-                                {
-                                    touched[field.name as string] && errors[field.name as string]?<Typography>{errors[field.name as string] as string}</Typography>:<></>
-                                }
-                            </Box>
-                        )
-                    }
+                    case 'checkbox': {
+                        return (
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }} key={field.name}>
+                            <Typography>{field.label}</Typography>
+                            <Checkbox
+                              name={field.name}
+                              checked={formData[field.name as string].value}
+                              onChange={(e) => handleChange(e.target.name, {
+                                index,
+                                label: field.label,
+                                value: e.target.checked,
+                              })}
+                            />
+                            {touched[field.name as string] && errors[field.name as string] ? (
+                              <Typography sx={{ color: 'red' }}>{errors[field.name as string] as string}</Typography>
+                            ) : (
+                              <></>
+                            )}
+                          </Box>
+                        );
+                      }
+                      
                     case 'submit':{
                         return (
                             <Button type="submit" disabled={isSubmitting} key={field.label} id={field.type}>
