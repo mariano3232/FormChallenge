@@ -3,7 +3,7 @@ import {Box,TextField,Typography,Select,MenuItem,Checkbox,Button} from '@mui/mat
 import { Formik } from 'formik';
 import  {sendFormData}  from '../firebase';
 import { useNavigate } from "react-router-dom";
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 
 export default function Survey() {
     const formFields=db
@@ -71,7 +71,12 @@ export default function Survey() {
         setFormData(updatedFormData);
         setErrors(validate(updatedFormData));
         // console.log('formData:', formData);
+        console.log(errors)
     };
+
+    useEffect(()=>{
+        setErrors(validate(formData));
+    },[])
 
     const areThereErrors = (errors: { [key: string]: string }) => {
         let res=false;
