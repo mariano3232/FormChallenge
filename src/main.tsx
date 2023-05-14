@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import {createBrowserRouter,RouterProvider} from "react-router-dom";
 import App from './App.tsx'
-import Answers from './components/answers.tsx';
+import Answers from './components/answers/index.tsx';
 import './index.css'
 
 const router=createBrowserRouter([
