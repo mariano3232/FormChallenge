@@ -1,8 +1,9 @@
 import db from '../db.json'
 import {Box,TextField,Typography,Select,MenuItem,Checkbox,Button} from '@mui/material'
-import { Formik } from 'formik';
+import { Formik  } from 'formik';
 import  {sendFormData}  from '../firebase';
 import { useNavigate } from "react-router-dom";
+import toast,{ Toaster } from 'react-hot-toast';
 import {useEffect, useState} from 'react'
 
 export default function Survey() {
@@ -22,7 +23,7 @@ export default function Survey() {
                 initialValues[item.name as string] = {value:'label'};
             break;
             default:
-                initialValues[item.name as string] = {};
+                initialValues[item.name as string] = {value:''};
             }
         }
     })
@@ -90,20 +91,31 @@ export default function Survey() {
 
     return (
     <Box>
+        <Toaster/>
         <Formik           
             initialValues={initialValues}
-
             onSubmit={ async ()=>{
                 if (areThereErrors(errors)===false){
                     try {
-                        const result = await sendFormData(formData);
-                        console.log(result);
-                        navigate('/answers')
+                        await sendFormData(formData);
+                        setFormData(initialValues)
+                        toast.success((t) => (
+                            t.duration=5000,
+                            <span>
+                              Respuestas enviadas con exito!
+                              <Button onClick={()=>{toast.dismiss(t.id);navigate('/answers')}}>
+                                Ver respuestas
+                              </Button>
+                              <Button onClick={() => toast.dismiss(t.id)}>
+                                X
+                              </Button>
+                            </span>
+                        ));
                     } catch (error) {
                         console.log('Error:', error);
                     }
                 } else {
-                    alert('Hay errores en el formulario, revisar e intentar nuevamente')
+                    toast.error('Error, revisar respuestas e intentar nuevamente')
                 }
             }}
         >
@@ -118,7 +130,13 @@ export default function Survey() {
             display:'flex',
             flexDirection:'column',
             gap:'30px',
+            bgcolor:'#FFFFF0',
+            padding:'80px',
+            borderRadius:'8px',
+            transition:'500',
+            width:{md:'275px',xs:'200px'}
         }}>
+            <Typography variant='h4'>Formulario</Typography>
         {
             formFields?.items.map((field,index)=>{
                 switch(field.type){
@@ -229,7 +247,9 @@ export default function Survey() {
                       
                     case 'submit':{
                         return (
-                            <Button type="submit" disabled={isSubmitting} key={field.label} id={field.type}>
+                            <Button type="submit" disabled={isSubmitting} key={field.label} id={field.type} sx={{
+                                
+                            }}>
                                 {field.label}
                             </Button>
                         )

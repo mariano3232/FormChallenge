@@ -4,6 +4,13 @@ import {createBrowserRouter,RouterProvider} from "react-router-dom";
 import App from './App.tsx'
 import Answers from './components/answers/index.tsx';
 import './index.css'
+import { createTheme,ThemeProvider } from '@mui/material';
+
+const theme=createTheme({
+  typography:{
+    fontFamily:'Ubuntu'
+  },
+})
 
 const router=createBrowserRouter([
   {
@@ -18,6 +25,8 @@ const router=createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <ThemeProvider theme={theme}>
+      <RouterProvider router={router} />
+    </ThemeProvider>
   </React.StrictMode>,
 )

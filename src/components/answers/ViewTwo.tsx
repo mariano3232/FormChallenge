@@ -1,4 +1,4 @@
-import { Box } from "@mui/material"
+import { Box, Typography } from "@mui/material"
 
 interface props {
     allAnswers:{[key:string]:any}[],
@@ -28,27 +28,65 @@ export default function ViewTwo({allAnswers,keys}:props) {
                 uniqueAnswer['amount']= (uniqueAnswer['amount'] || 1) + 1
                 isUnique=false
             }
-            if (answer.key===uniqueAnswer.key){
-                answer.label=null;
-            }
+            // if (answer.key===uniqueAnswer.key){
+            //     answer.label=null;
+            // }
         })
         if (isUnique){
             uniqueAnswers.push(answer)
         }
     })
-    console.log('uniqueAnswers :',uniqueAnswers)
 
+    const labels=uniqueAnswers.map((e)=>{
+        return e.label;
+    })
+
+    const uniqueLabels = labels.filter((item,index)=>{
+        return labels.indexOf(item) === index;
+    })
+
+    console.log('uniqueAnswers :',uniqueAnswers)
+    console.log(uniqueLabels)
 
     return (
     <Box>
         {
-            uniqueAnswers.map(answer=>{
+            uniqueLabels.map(label=>{
                 return(
-                    <Box>
-                        <h4>{answer.label}</h4>
-                        <span>{answer.value.toString()}</span>
+                    <Box sx={{
+                        bgcolor:'#FFFFF0',
+                        borderRadius:'8px',
+                        margin:'10px',
+                        padding:'30px'
+                    }}>
+                        <h3>{label}</h3>
                         {
-                            answer.amount?<span>(X{answer.amount})</span>:null
+                            uniqueAnswers.map(answer=>{
+                                return (
+                                    <Box sx={{
+                                        position:'relative'
+                                    }}>
+                                        {
+                                            answer.label===label?
+                                            <Box sx={{
+                                                display:'flex',
+                                                padding:'5px',
+                                                margin:'10px',
+                                                borderRadius:'3px',
+                                                bgcolor:'#a7acd9',
+                                            }}>
+                                                <Typography>{answer.value.toString()}</Typography>
+                                                <Typography fontWeight={'bold'} sx={{
+                                                    position:'absolute',
+                                                    right:'30px'
+                                                }}>
+                                                   x{answer.amount?answer.amount:1}
+                                                </Typography>
+                                            </Box>:null
+                                        }
+                                    </Box>
+                                )
+                            })
                         }
                     </Box>
                 )

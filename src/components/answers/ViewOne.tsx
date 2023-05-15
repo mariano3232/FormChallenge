@@ -6,11 +6,11 @@ interface props{
 }
 
 export default function ViewOne({allAnswers,keys}:props) {
+
     return (
         <Box sx={{
             display:'flex',
-            flexDirection:'column',
-            
+            flexDirection:'column',      
         }}>
             {
                 allAnswers.map((answer,i)=>{
@@ -18,9 +18,10 @@ export default function ViewOne({allAnswers,keys}:props) {
                     <Box
                     key={i}
                     sx={{
-                        bgcolor:'grey',
+                        bgcolor:'#FFFFF0',
+                        borderRadius:'8px',
                         margin:'10px',
-                        padding:'10px',
+                        padding:'30px',
                     }}
                     >
                     {
@@ -28,8 +29,12 @@ export default function ViewOne({allAnswers,keys}:props) {
                             return(
                                 <Box key={i} sx={{
                                     display:'flex',
+                                    padding:'5px',
+                                    margin:'10px',
+                                    borderRadius:'3px',
+                                    bgcolor:'#a7acd9',
                                 }}>
-                                    <Typography>{answer[key].label}:</Typography>
+                                    <Typography>{answer[key].label} : </Typography>
                                     <Typography>{answer[key].value.toString()}</Typography>
                                 </Box>
                             )

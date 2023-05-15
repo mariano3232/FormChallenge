@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Box,Typography,Button } from '@mui/material'
 import { getFormData } from '../../firebase'
+import { useNavigate } from "react-router-dom";
 import ViewOne from './ViewOne';
 import ViewTwo from './ViewTwo';
 
 export default function Answers() {
+
+    const navigate=useNavigate()
 
     const [allAnswers,setAllAnswers]= useState<{[key: string]: any}[]>(
         [],
@@ -46,9 +49,10 @@ export default function Answers() {
 
     return (
     <Box>
-        <Typography variant='h1'>Respuestas</Typography>
+        <Typography variant='h4'>Respuestas</Typography>
         <Button onClick={()=>{setView(1)}}>Vista 1</Button>
         <Button onClick={()=>{setView(2)}}>Vista 2</Button>
+        <Button onClick={()=>{navigate('/')}}>Volver</Button>
         {
             view===1?<ViewOne allAnswers={allAnswers} keys={keys}/>:<ViewTwo allAnswers={allAnswers} keys={keys}/>
         }
